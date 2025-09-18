@@ -11,9 +11,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onModuleChange, lastModule }
   const [selectedLanguage, setSelectedLanguage] = useState('English');
 
   const videoUrls = {
-    'English': 'https://www.youtube.com/embed/qzvP4kEVShA',
-    'Hindi/Urdu': 'https://www.youtube.com/embed/vGCI2gTVMRc',
-    'Telugu': 'https://www.youtube.com/embed/BeRntzdd6RM'
+    'English': 'https://www.youtube.com/embed/SBBSXMrLfPA',
+    'Hindi/Urdu': 'https://www.youtube.com/embed/D4qBkj2wnaQ',
+    'Telugu': 'https://www.youtube.com/embed/Zo38ieGNGHc'
   };
 
   const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
