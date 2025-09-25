@@ -1,10 +1,11 @@
 import React from 'react';
-import { BookOpen, Calculator, Home } from 'lucide-react';
+import { BookOpen, Calculator, Home, LogOut } from 'lucide-react';
 import { modules } from '../data/modules';
 
 interface SidebarProps {
   currentModule: string;
   onModuleChange: (moduleId: string) => void;
+  onLogout: () => void;
 }
 
 const iconMap: { [key: string]: React.ReactNode } = {
@@ -12,7 +13,7 @@ const iconMap: { [key: string]: React.ReactNode } = {
   Calculator: <Calculator size={20} />,
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentModule, onModuleChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentModule, onModuleChange, onLogout }) => {
   return (
     <div className="fixed left-0 top-0 h-full w-80 bg-white shadow-lg border-r border-gray-200 z-10">
       <div className="p-6 border-b border-gray-200">
@@ -51,6 +52,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, onModuleChange 
           </button>
         ))}
       </nav>
+      
+      {/* Logout Button */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+        >
+          <LogOut size={20} />
+          <span className="font-medium">Sign Out</span>
+        </button>
+      </div>
     </div>
   );
 };
