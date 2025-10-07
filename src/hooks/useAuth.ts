@@ -1,13 +1,34 @@
 import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { AuthService } from '../firebase/authService';
+import { AuthService as FirebaseAuthService } from '../firebase/authService';
+import { AuthService as SSOAuthService, UserData } from '../services/authService';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [ssoUser, setSsoUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = AuthService.onAuthStateChanged((user) => {
+    // First check for SSO token
+    const ssoUserData = SSOAuthService.validateTokenFromShell();
+    
+    if (ssoUserData) {
+      setSsoUser(ssoUserData);
+      console.log('✅ SSO Login successful:', ssoUserData);
+      setLoading(false);
+      return;
+    }
+
+    // Check for stored SSO user data
+    const storedSsoUser = SSOAuthService.getUserData();
+    if (storedSsoUser) {
+      setSsoUser(storedSsoUser);
+      setLoading(false);
+      return;
+    }
+
+    // Fallback to Firebase authentication
+    const unsubscribe = FirebaseAuthService.onAuthStateChanged((user) => {
       setUser(user);
       setLoading(false);
     });
@@ -18,7 +39,7 @@ export const useAuth = () => {
   const signInWithEmail = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const user = await AuthService.signInWithEmail(email, password);
+      const user = await FirebaseAuthService.signInWithEmail(email, password);
       return user;
     } finally {
       setLoading(false);
@@ -28,7 +49,7 @@ export const useAuth = () => {
   const signInWithGoogle = async () => {
     setLoading(true);
     try {
-      const user = await AuthService.signInWithGoogle();
+      const user = await FirebaseAuthService.signInWithGoogle();
       return user;
     } finally {
       setLoading(false);
@@ -38,7 +59,15 @@ export const useAuth = () => {
   const signOut = async () => {
     setLoading(true);
     try {
-      await AuthService.signOut();
+      if (ssoUser) {
+        // SSO logout - redirect to shell
+        SSOAuthService.logout();
+        setSsoUser(null);
+      } else {
+        // Firebase logout
+        await FirebaseAuthService.signOut();
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -47,19 +76,31 @@ export const useAuth = () => {
   const sendPasswordReset = async (email: string) => {
     setLoading(true);
     try {
-      await AuthService.sendPasswordResetEmail(email);
+      await FirebaseAuthService.sendPasswordResetEmail(email);
     } finally {
       setLoading(false);
     }
   };
 
+  // Determine if user is authenticated (either SSO or Firebase)
+  const isAuthenticated = !!user || !!ssoUser;
+  
+  // Get current user data (prioritize SSO user)
+  const currentUser = ssoUser ? {
+    uid: ssoUser.uid,
+    email: ssoUser.email,
+    displayName: ssoUser.name,
+    emailVerified: true
+  } as User : user;
+
   return {
-    user,
+    user: currentUser,
+    ssoUser,
     loading,
     signInWithEmail,
     signInWithGoogle,
     signOut,
     sendPasswordReset,
-    isAuthenticated: !!user
+    isAuthenticated
   };
 };

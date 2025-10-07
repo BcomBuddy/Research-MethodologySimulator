@@ -1,11 +1,13 @@
 import React from 'react';
-import { BookOpen, Calculator, Home, LogOut } from 'lucide-react';
+import { BookOpen, Calculator, Home, LogOut, User } from 'lucide-react';
 import { modules } from '../data/modules';
+import { UserData } from '../services/authService';
 
 interface SidebarProps {
   currentModule: string;
   onModuleChange: (moduleId: string) => void;
   onLogout: () => void;
+  ssoUser?: UserData | null;
 }
 
 const iconMap: { [key: string]: React.ReactNode } = {
@@ -13,12 +15,29 @@ const iconMap: { [key: string]: React.ReactNode } = {
   Calculator: <Calculator size={20} />,
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentModule, onModuleChange, onLogout }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentModule, onModuleChange, onLogout, ssoUser }) => {
   return (
     <div className="fixed left-0 top-0 h-full w-80 bg-white shadow-lg border-r border-gray-200 z-10">
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-800">Research & Methodology Simulator</h1>
         <p className="text-sm text-gray-600 mt-1">3rd Year – 5th Semester</p>
+        
+        {/* SSO User Information */}
+        {ssoUser && (
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <User size={16} className="text-blue-600" />
+              <span className="text-sm font-medium text-blue-800">SSO User</span>
+            </div>
+            <div className="text-sm text-blue-700">
+              <div className="font-medium">{ssoUser.name}</div>
+              <div className="text-xs text-blue-600">{ssoUser.email}</div>
+              <div className="text-xs text-blue-600 mt-1">
+                {ssoUser.role} • {ssoUser.yearOfStudy}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       <nav className="p-4 space-y-2">

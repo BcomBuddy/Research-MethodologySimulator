@@ -4,11 +4,12 @@ import { HomePage } from './components/HomePage';
 import { LoginPage } from './components/LoginPage';
 import { Module1 } from './components/modules/Module1';
 import { Module2 } from './components/modules/Module2';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
 import { saveToLocalStorage, loadFromLocalStorage } from './utils/localStorage';
 
 function App() {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, ssoUser, loading: authLoading, signOut } = useAuth();
   const [currentModule, setCurrentModule] = useState<string>('home');
   const [lastModule, setLastModule] = useState<string | null>(null);
 
@@ -68,20 +69,52 @@ function App() {
     );
   }
 
-  // Show login page if not authenticated
-  if (!user) {
+  // Show login page if not authenticated (only for Firebase users)
+  if (!user && !ssoUser) {
     return <LoginPage onLogin={() => {}} />;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar currentModule={currentModule} onModuleChange={handleModuleChange} onLogout={handleLogout} />
-      <main className="ml-80 p-8">
-        <div className="max-w-6xl mx-auto">
-          {renderCurrentModule()}
+  // If SSO user, show authentication required message
+  if (ssoUser && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-lg shadow-lg">
+          <h1 className="text-2xl font-bold mb-4 text-gray-800">Authentication Required</h1>
+          <p className="text-gray-600 mb-4">
+            This app requires authentication through the main BcomBuddy platform.
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Please access this app through the BcomBuddy dashboard.
+          </p>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>SSO User Detected:</strong> {ssoUser.name} ({ssoUser.email})
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Role: {ssoUser.role} | Year: {ssoUser.yearOfStudy}
+            </p>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        <Sidebar 
+          currentModule={currentModule} 
+          onModuleChange={handleModuleChange} 
+          onLogout={handleLogout}
+          ssoUser={ssoUser}
+        />
+        <main className="ml-80 p-8">
+          <div className="max-w-6xl mx-auto">
+            {renderCurrentModule()}
+          </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }
 
